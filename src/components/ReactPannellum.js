@@ -93,6 +93,10 @@ class ReactPannellum extends React.Component {
     return myPannellum && myPannellum.isLoaded();
   }
 
+  static getPixels() {
+    return myPannellum && myPannellum.getPixels();
+  }
+
   static getPitch() {
     return myPannellum && myPannellum.getPitch();
   }
