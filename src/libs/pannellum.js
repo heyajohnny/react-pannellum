@@ -763,7 +763,7 @@ export default (function(window, document, undefined) {
 
       var startIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
       //These pixels contain the distance of the whole image (in millimeter)
-      var pixels = renderer.getPixels();
+      var pixels = getPixels();
       //                 Green = mm * 256             + Red = mm
       var distanceInMm = (pixels[startIndex+1] * 256) + pixels[startIndex];
       var distanceInMeter = distanceInMm / 1000;
@@ -780,6 +780,16 @@ export default (function(window, document, undefined) {
       if (yaw > 180)
         yaw -= 360;
       return [pitch, yaw, distanceInMeter];
+    }
+
+    /**
+     * Retrieve renderer's canvas.
+     * @memberof Viewer
+     * @instance
+     * @returns {Uint8Array} value of every pixel in RGBA.
+     */
+    function getPixels() {
+      return renderer.getPixels();
     }
 
     /**
@@ -2928,6 +2938,16 @@ export default (function(window, document, undefined) {
     this.mouseEventToCoords = function(event) {
       return mouseEventToCoords(event);
     };
+
+    /**
+     * Retrieve renderer's canvas.
+     * @memberof Viewer
+     * @instance
+     * @returns {Uint8Array} value of every pixel in RGBA.
+     */
+    this.getPixels = function() {
+      return getPixels();
+    }
 
     /**
      * Change scene being viewed.

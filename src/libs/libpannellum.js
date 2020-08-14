@@ -768,7 +768,7 @@ export default (function(window, document, undefined) {
      * Retrieve the value of every pixel in RGBA.
      * @memberof Renderer
      * @instance
-     * @returns {HTMLElement} value of every pixel in RGBA.
+     * @returns {Uint8Array} value of every pixel in RGBA.
      */
     this.getPixels = function () {
       return pixels;
