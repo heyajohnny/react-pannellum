@@ -8,6 +8,7 @@ export default (function(window, document, undefined) {
     container.appendChild(canvas);
 
     var program, gl, vs, fs;
+    var pixels;
     var fallbackImgSize;
     var world;
     var vtmps;
@@ -27,7 +28,7 @@ export default (function(window, document, undefined) {
      *      configuration object.
      * @param {string} imageType - The type of the image: `equirectangular`,
      *      `cubemap`, or `multires`.
-     * @param {boolean} dynamic - Whether or not the image is dynamic (e.g. video).
+     * @param {boolean} dynamic - Whether or not the image is dynamic (e.g., video).
      * @param {number} haov - Initial horizontal angle of view.
      * @param {number} vaov - Initial vertical angle of view.
      * @param {number} voffset - Initial vertical offset angle.
@@ -94,7 +95,7 @@ export default (function(window, document, undefined) {
           rgb[0] *= 255;
           rgb[1] *= 255;
           rgb[2] *= 255;
-          // Maybe filling could be done faster, see e.g. https://stackoverflow.com/questions/1295584/most-efficient-way-to-create-a-zero-filled-javascript-array
+          // Maybe filling could be done faster, see e.g., https://stackoverflow.com/questions/1295584/most-efficient-way-to-create-a-zero-filled-javascript-array
           for (var i = 0; i < nbytes; i++) {
             imageArray[i++] = rgb[0];
             imageArray[i++] = rgb[1];
@@ -283,9 +284,12 @@ export default (function(window, document, undefined) {
       }
 
       // Store horizon pitch and roll if applicable
-      if (params !== undefined && (params.horizonPitch !== undefined || params.horizonRoll !== undefined))
-        pose = [params.horizonPitch == undefined ? 0 : params.horizonPitch,
-          params.horizonRoll == undefined ? 0 : params.horizonRoll];
+      if (params !== undefined) {
+        var horizonPitch = isNaN(params.horizonPitch) ? 0 : Number(params.horizonPitch),
+          horizonRoll = isNaN(params.horizonRoll) ? 0 : Number(params.horizonRoll);
+        if (horizonPitch != 0 || horizonRoll != 0)
+          pose = [horizonPitch, horizonRoll];
+      }
 
       // Set 2d texture binding
       var glBindType = gl.TEXTURE_2D;
@@ -535,9 +539,16 @@ export default (function(window, document, undefined) {
      * Set renderer horizon pitch and roll.
      * @memberof Renderer
      * @instance
+     * @param {number} horizonPitch - Pitch of horizon (in radians).
+     * @param {number} horizonRoll - Roll of horizon (in radians).
      */
     this.setPose = function(horizonPitch, horizonRoll) {
-      pose = [horizonPitch, horizonRoll];
+      horizonPitch = isNaN(horizonPitch) ? 0 : Number(horizonPitch);
+      horizonRoll = isNaN(horizonRoll) ? 0 : Number(horizonRoll);
+      if (horizonPitch == 0 && horizonRoll == 0)
+        pose = undefined;
+      else
+        pose = [horizonPitch, horizonRoll];
     };
 
     /**
@@ -729,6 +740,18 @@ export default (function(window, document, undefined) {
           }
         }
       }
+
+      var pxls = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+      gl.readPixels(
+        0,
+        0,
+        gl.drawingBufferWidth,
+        gl.drawingBufferHeight,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        pxls);
+      pixels = pxls.slice(); //copy array to pixels
+
       return false;
     };
 
@@ -740,6 +763,16 @@ export default (function(window, document, undefined) {
      */
     this.getCanvas = function() {
       return canvas;
+    };
+
+    /**
+     * Retrieve the value of every pixel in RGBA.
+     * @memberof Renderer
+     * @instance
+     * @returns {HTMLElement} value of every pixel in RGBA.
+     */
+    this.getPixels = function () {
+      return pixels;
     };
 
     /**
@@ -814,7 +847,7 @@ export default (function(window, document, undefined) {
      * Creates new multires node.
      * @constructor
      * @private
-     * @param {number[]} vertices - Node's verticies.
+     * @param {number[]} vertices - Node's vertices.
      * @param {string} side - Node's cube face.
      * @param {number} level - Node's zoom level.
      * @param {number} x - Node's x position.
@@ -1106,7 +1139,7 @@ export default (function(window, document, undefined) {
 
     // Based on http://blog.tojicode.com/2012/03/javascript-memory-optimization-and.html
     var loadTexture = (function() {
-      var cacheTop = 4;   // Maximum number of concurrents loads
+      var cacheTop = 4;   // Maximum number of concurrent loads
       var textureImageCache = {};
       var crossOrigin;
 
@@ -1116,7 +1149,7 @@ export default (function(window, document, undefined) {
         this.image = new Image();
         this.image.crossOrigin = crossOrigin ? crossOrigin : 'anonymous';
         var loadFn = (function() {
-          if (self.image.width > 0 && self.image.height > 0) { // ignore missing tile to supporting partial image
+          if (self.image.width > 0 && self.image.height > 0) { // Ignore missing tile to supporting partial image
             processLoadedTexture(self.image, self.texture);
             self.callback(self.texture, true);
           } else {
@@ -1125,7 +1158,7 @@ export default (function(window, document, undefined) {
           releaseTextureImageLoader(self);
         });
         this.image.addEventListener('load', loadFn);
-        this.image.addEventListener('error', loadFn); // ignore missing tile file to support partial image, otherwise retry loop causes high CPU load
+        this.image.addEventListener('error', loadFn); // Ignore missing tile file to support partial image; otherwise retry loop causes high CPU load
       }
 
       TextureImageLoader.prototype.loadTexture = function(src, texture, callback) {
@@ -1280,7 +1313,7 @@ export default (function(window, document, undefined) {
 
     /**
      * On iOS (iPhone 5c, iOS 10.3), this WebGL error occurs when the canvas is
-     * too big. Unfortuately, there's no way to test for this beforehand, so we
+     * too big. Unfortunately, there's no way to test for this beforehand, so we
      * reduce the canvas size if this error is thrown.
      * @private
      */
@@ -1419,7 +1452,5 @@ export default (function(window, document, undefined) {
       return new Renderer(container, image, imagetype, dynamic);
     }
   };
-})(
-  typeof window === "undefined" ? null : window,
-  typeof document === "undefined" ? null : document
-);
+
+})(window, document);

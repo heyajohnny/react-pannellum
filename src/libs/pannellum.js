@@ -8,6 +8,7 @@ export default (function(window, document, undefined) {
     var config,
       renderer,
       preview,
+      draggingHotSpot,
       isUserInteracting = false,
       latestInteraction = Date.now(),
       onPointerDownPointerX = 0,
@@ -36,6 +37,7 @@ export default (function(window, document, undefined) {
       specifiedPhotoSphereExcludes = [],
       update = false, // Should we update when still to render dynamic content
       eps = 1e-6,
+      resizeObserver,
       hotspotsCreated = false,
       destroyed = false;
 
@@ -45,8 +47,8 @@ export default (function(window, document, undefined) {
       multiResMinHfov: false,
       maxHfov: 120,
       pitch: 0,
-      minPitch: -90,
-      maxPitch: 90,
+      minPitch: undefined,
+      maxPitch: undefined,
       yaw: 0,
       minYaw: -180,
       maxYaw: 180,
@@ -56,8 +58,8 @@ export default (function(window, document, undefined) {
       vOffset: 0,
       autoRotate: false,
       autoRotateInactivityDelay: -1,
-      autoRotateStopDelay: 0,
-      type: "equirectangular",
+      autoRotateStopDelay: undefined,
+      type: 'equirectangular',
       northOffset: 0,
       showFullscreenCtrl: true,
       dynamic: false,
@@ -104,26 +106,6 @@ export default (function(window, document, undefined) {
         ' (If you\'re the author, try scaling down the image.)',    // Two substitutions: image width, max image width
       unknownError: 'Unknown error. Check developer console.',
     };
-
-    var usedKeyNumbers = [
-      16,
-      17,
-      27,
-      37,
-      38,
-      39,
-      40,
-      61,
-      65,
-      68,
-      83,
-      87,
-      107,
-      109,
-      173,
-      187,
-      189
-    ];
 
 // Initialize container
     container = typeof container === 'string' ? document.getElementById(container) : container;
@@ -202,7 +184,7 @@ export default (function(window, document, undefined) {
     uiContainer.appendChild(controls.container);
 
 // Load button
-    controls.load = document.createElement('div');
+    controls.load = document.createElement('button');
     controls.load.className = 'pnlm-load-button';
     controls.load.addEventListener('click', function() {
       processOptions();
@@ -243,14 +225,15 @@ export default (function(window, document, undefined) {
     controls.orientation.addEventListener('pointerdown', function(e) {e.stopPropagation();});
     controls.orientation.className = 'pnlm-orientation-button pnlm-orientation-button-inactive pnlm-sprite pnlm-controls pnlm-control';
     var orientationSupport = false;
-    if (window.DeviceOrientationEvent && location.protocol == 'https:' && navigator.userAgent.toLowerCase().indexOf('mobi') >= 0) {
+    if (window.DeviceOrientationEvent && location.protocol == 'https:' &&
+      navigator.userAgent.toLowerCase().indexOf('mobi') >= 0) {
       // This user agent check is here because there's no way to check if a
       // device has an inertia measurement unit. We used to be able to check if a
       // DeviceOrientationEvent had non-null values, but with iOS 13 requiring a
       // permission prompt to access such events, this is no longer possible.
       controls.container.appendChild(controls.orientation);
       orientationSupport = true;
-      }
+    }
 
 // Compass
     var compass = document.createElement('div');
@@ -312,10 +295,10 @@ export default (function(window, document, undefined) {
         panoImage = c;
       } else {
         if (config.dynamic === true) {
-          panoImage = config.imageSource;
+          panoImage = config.panorama;
         } else {
-          if (config.imageSource === undefined) {
-            anError(config.uiText.noPanoramaError);
+          if (config.panorama === undefined) {
+            anError(config.strings.noPanoramaError);
             return;
           }
           panoImage = new Image();
@@ -337,13 +320,11 @@ export default (function(window, document, undefined) {
         var onError = function(e) {
           var a = document.createElement('a');
           a.href = e.target.src;
-          a.innerHTML = a.href;
-          anError(config.uiText.fileAccessError.replace("%s", a.outerHTML));
+          a.textContent = a.href;
+          anError(config.strings.fileAccessError.replace('%s', a.outerHTML));
         };
 
         for (i = 0; i < panoImage.length; i++) {
-          panoImage[i].onload = onLoad;
-          panoImage[i].onerror = onError;
           p = config.cubeMap[i];
           if (p == "null") { // support partial cubemap image with explicitly empty faces
             console.log('Will use background instead of missing cubemap face ' + i);
@@ -355,7 +336,6 @@ export default (function(window, document, undefined) {
             panoImage[i].onload = onLoad;
             panoImage[i].onerror = onError;
             panoImage[i].src = sanitizeURL(p);
-            //panoImage[i].src = encodeURI(p);
           }
         }
       } else if (config.type == 'multires') {
@@ -368,9 +348,14 @@ export default (function(window, document, undefined) {
 
         if (config.dynamic !== true) {
           // Still image
-          p = absoluteURL(config.imageSource)
-            ? config.imageSource
-            : p + config.imageSource;
+          if (config.panorama instanceof Image || config.panorama instanceof ImageData ||
+            config.panorama instanceof ImageBitmap) {
+            panoImage = config.panorama;
+            onImageLoad();
+            return;
+          }
+
+          p = absoluteURL(config.panorama) ? config.panorama : p + config.panorama;
 
           panoImage.onload = function() {
             window.URL.revokeObjectURL(this.src);  // Clean up
@@ -387,7 +372,7 @@ export default (function(window, document, undefined) {
               anError(config.strings.fileAccessError.replace('%s', a.outerHTML));
             }
             var img = this.response;
-            parseGPanoXMP(img);
+            parseGPanoXMP(img, p);
             infoDisplay.load.msg.innerHTML = '';
           };
           xhr.onprogress = function(e) {
@@ -449,11 +434,7 @@ export default (function(window, document, undefined) {
      */
     function absoluteURL(url) {
       // From http://stackoverflow.com/a/19709846
-      return (
-        new RegExp("^(?:[a-z]+:)?//", "i").test(url) ||
-        url[0] == "/" ||
-        url.slice(0, 5) == "blob:"
-      );
+      return new RegExp('^(?:[a-z]+:)?//', 'i').test(url) || url[0] == '/' || url.slice(0, 5) == 'blob:';
     }
 
     /**
@@ -467,38 +448,43 @@ export default (function(window, document, undefined) {
       // Only add event listeners once
       if (!listenersAdded) {
         listenersAdded = true;
-        dragFix.addEventListener('mousedown', onDocumentMouseDown, false);
-        document.addEventListener('mousemove', onDocumentMouseMove, false);
-        document.addEventListener('mouseup', onDocumentMouseUp, false);
+        window.addEventListener('mousedown', onDocumentMouseDown, false);
+        window.addEventListener('mousemove', onDocumentMouseMove, false);
+        window.addEventListener('mouseup', onDocumentMouseUp, false);
         if (config.mouseZoom) {
-          uiContainer.addEventListener('mousewheel', onDocumentMouseWheel, false);
-          uiContainer.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);
+          window.addEventListener('mousewheel', onDocumentMouseWheel, false);
+          window.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);
         }
         if (config.doubleClickZoom) {
-          dragFix.addEventListener('dblclick', onDocumentDoubleClick, false);
+          window.addEventListener('dblclick', onDocumentDoubleClick, false);
         }
-        container.addEventListener('mozfullscreenchange', onFullScreenChange, false);
-        container.addEventListener('webkitfullscreenchange', onFullScreenChange, false);
-        container.addEventListener('msfullscreenchange', onFullScreenChange, false);
-        container.addEventListener('fullscreenchange', onFullScreenChange, false);
-        window.addEventListener('resize', onDocumentResize, false);
-        window.addEventListener('orientationchange', onDocumentResize, false);
+        window.addEventListener('mozfullscreenchange', onFullScreenChange, false);
+        window.addEventListener('webkitfullscreenchange', onFullScreenChange, false);
+        window.addEventListener('msfullscreenchange', onFullScreenChange, false);
+        window.addEventListener('fullscreenchange', onFullScreenChange, false);
+        if (typeof ResizeObserver === 'function') {
+          resizeObserver = new ResizeObserver(onDocumentResize);
+          resizeObserver.observe(container);
+        } else {
+          window.addEventListener('resize', onDocumentResize, false);
+          window.addEventListener('orientationchange', onDocumentResize, false);
+        }
         if (!config.disableKeyboardCtrl) {
-          container.addEventListener('keydown', onDocumentKeyPress, false);
-          container.addEventListener('keyup', onDocumentKeyUp, false);
-          container.addEventListener('blur', clearKeys, false);
+          window.addEventListener('keydown', onDocumentKeyPress, false);
+          window.addEventListener('keyup', onDocumentKeyUp, false);
+          window.addEventListener('blur', clearKeys, false);
         }
-        document.addEventListener('mouseleave', onDocumentMouseUp, false);
+        window.addEventListener('mouseleave', onDocumentMouseUp, false);
         if (document.documentElement.style.pointerAction === '' &&
           document.documentElement.style.touchAction === '') {
-          dragFix.addEventListener('pointerdown', onDocumentPointerDown, false);
-          dragFix.addEventListener('pointermove', onDocumentPointerMove, false);
-          dragFix.addEventListener('pointerup', onDocumentPointerUp, false);
-          dragFix.addEventListener('pointerleave', onDocumentPointerUp, false);
+          window.addEventListener('pointerdown', onDocumentPointerDown, false);
+          window.addEventListener('pointermove', onDocumentPointerMove, false);
+          window.addEventListener('pointerup', onDocumentPointerUp, false);
+          window.addEventListener('pointerleave', onDocumentPointerUp, false);
         } else {
-          dragFix.addEventListener('touchstart', onDocumentTouchStart, false);
-          dragFix.addEventListener('touchmove', onDocumentTouchMove, false);
-          dragFix.addEventListener('touchend', onDocumentTouchEnd, false);
+          window.addEventListener('touchstart', onDocumentTouchStart, false);
+          window.addEventListener('touchmove', onDocumentTouchMove, false);
+          window.addEventListener('touchend', onDocumentTouchEnd, false);
         }
 
         // Deal with MS pointer events
@@ -507,7 +493,7 @@ export default (function(window, document, undefined) {
       }
 
       renderInit();
-      setHfov(config.hfov); // possibly adapt hfov after configuration and canvas is complete; prevents empty space on top or bottom by zomming out too much
+      setHfov(config.hfov); // Possibly adapt HFOV after configuration and canvas is complete; prevents empty space on top or bottom by zooming out too much
       setTimeout(function(){isTimedOut = true;}, 500);
     }
 
@@ -517,7 +503,7 @@ export default (function(window, document, undefined) {
      * @private
      * @param {Image} image - Image to read XMP metadata from.
      */
-    function parseGPanoXMP(image) {
+    function parseGPanoXMP(image, url) {
       var reader = new FileReader();
       reader.addEventListener('loadend', function() {
         var img = reader.result;
@@ -593,6 +579,35 @@ export default (function(window, document, undefined) {
 
         // Load panorama
         panoImage.src = window.URL.createObjectURL(image);
+        panoImage.onerror = function() {
+          // If the image fails to load, we check the Content Security Policy
+          // headers and see if they block loading images as blobs. If they
+          // do, we load the image directly from the URL. While this should
+          // allow the image to load, it does prevent parsing of XMP data.
+          function getCspHeaders() {
+            if (!window.fetch)
+              return null;
+            return window.fetch(document.location.href)
+              .then(function(resp){
+                return resp.headers.get('Content-Security-Policy');
+              });
+          }
+          getCspHeaders().then(function(cspHeaders) {
+            if (cspHeaders) {
+              var invalidImgSource = cspHeaders.split(";").find(function(p) {
+                var matchstring = p.match(/img-src(.*)/);
+                if (matchstring) {
+                  return !matchstring[1].includes("blob");
+                }
+              });
+              if (invalidImgSource) {
+                console.log('CSP blocks blobs; reverting to URL.');
+                panoImage.crossOrigin = config.crossOrigin;
+                panoImage.src = url;
+              }
+            }
+          });
+        }
       });
       if (reader.readAsBinaryString !== undefined)
         reader.readAsBinaryString(image);
@@ -679,7 +694,7 @@ export default (function(window, document, undefined) {
       container.focus();
 
       // Only do something if the panorama is loaded
-      if (!loaded || !config.draggable) {
+      if (!loaded || !config.draggable || config.draggingHotSpot) {
         return;
       }
 
@@ -744,6 +759,15 @@ export default (function(window, document, undefined) {
         canvasHeight = canvas.clientHeight;
       var x = pos.x / canvasWidth * 2 - 1;
       var y = (1 - pos.y / canvasHeight * 2) * canvasHeight / canvasWidth;
+
+
+      var startIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
+      //These pixels contain the distance of the whole image (in millimeter)
+      var pixels = renderer.getPixels();
+      //                 Green = mm * 256             + Red = mm
+      var distanceInMm = (pixels[startIndex+1] * 256) + pixels[startIndex];
+      var distanceInMeter = distanceInMm / 1000;
+      //console.log("value of pixel (pixels[startIndex]) R ", pixels[startIndex], " G ", pixels[startIndex+1], " B ", pixels[startIndex+2], " A ", pixels[startIndex+3]);
       var focal = 1 / Math.tan(config.hfov * Math.PI / 360);
       var s = Math.sin(config.pitch * Math.PI / 180);
       var c = Math.cos(config.pitch * Math.PI / 180);
@@ -755,7 +779,7 @@ export default (function(window, document, undefined) {
         yaw += 360;
       if (yaw > 180)
         yaw -= 360;
-      return [pitch, yaw];
+      return [pitch, yaw, distanceInMeter];
     }
 
     /**
@@ -764,7 +788,9 @@ export default (function(window, document, undefined) {
      * @param {MouseEvent} event - Document mouse move event.
      */
     function onDocumentMouseMove(event) {
-      if (isUserInteracting && loaded) {
+      if (draggingHotSpot) {
+        moveHotSpot(draggingHotSpot, event);
+      } else if (isUserInteracting && loaded) {
         latestInteraction = Date.now();
         var canvas = renderer.getCanvas();
         var canvasWidth = canvas.clientWidth,
@@ -788,6 +814,10 @@ export default (function(window, document, undefined) {
      * @private
      */
     function onDocumentMouseUp(event) {
+      if (draggingHotSpot && draggingHotSpot.dragHandlerFunc)
+        draggingHotSpot.dragHandlerFunc(event, draggingHotSpot.dragHandlerArgs);
+      draggingHotSpot = null;
+
       if (!isUserInteracting) {
         return;
       }
@@ -812,7 +842,7 @@ export default (function(window, document, undefined) {
      */
     function onDocumentTouchStart(event) {
       // Only do something if the panorama is loaded
-      if (!loaded || !config.draggable) {
+      if (!loaded || !config.draggable || draggingHotSpot) {
         return;
       }
 
@@ -903,6 +933,8 @@ export default (function(window, document, undefined) {
      * @private
      */
     function onDocumentTouchEnd() {
+      draggingHotSpot = null;
+
       isUserInteracting = false;
       if (Date.now() - latestInteraction > 150) {
         speed.pitch = speed.yaw = 0;
@@ -940,6 +972,11 @@ export default (function(window, document, undefined) {
      */
     function onDocumentPointerMove(event) {
       if (event.pointerType == 'touch') {
+        if (draggingHotSpot) {
+          moveHotSpot(draggingHotSpot, event);
+          return;
+        }
+
         if (!config.draggable)
           return;
         for (var i = 0; i < pointerIDs.length; i++) {
@@ -961,6 +998,10 @@ export default (function(window, document, undefined) {
      * @param {PointerEvent} event - Document pointer up event.
      */
     function onDocumentPointerUp(event) {
+      if (draggingHotSpot && draggingHotSpot.dragHandlerFunc)
+        draggingHotSpot.dragHandlerFunc(event, draggingHotSpot.dragHandlerArgs);
+      draggingHotSpot = null;
+
       if (event.pointerType == 'touch') {
         var defined = false;
         for (var i = 0; i < pointerIDs.length; i++) {
@@ -1379,7 +1420,8 @@ export default (function(window, document, undefined) {
       } else if (renderer && (renderer.isLoading() || (config.dynamic === true && update))) {
         requestAnimationFrame(animate);
       } else {
-        fireEvent('animatefinished', {pitch: _this.getPitch(), yaw: _this.getYaw(), hfov: _this.getHfov()});
+        if (_this.getPitch && _this.getYaw && _this.getHfov)
+          fireEvent('animatefinished', {pitch: _this.getPitch(), yaw: _this.getYaw(), hfov: _this.getHfov()});
         animating = false;
         prevTime = undefined;
         var autoRotateStartTime = config.autoRotateInactivityDelay -
@@ -1410,9 +1452,9 @@ export default (function(window, document, undefined) {
 
         if (config.autoRotate !== false) {
           // When auto-rotating this check needs to happen first (see issue #764)
-          if (config.yaw > 180) {
+          if (config.yaw > 360) {
             config.yaw -= 360;
-          } else if (config.yaw < -180) {
+          } else if (config.yaw < -360) {
             config.yaw += 360;
           }
         }
@@ -1453,9 +1495,9 @@ export default (function(window, document, undefined) {
         if (!(config.autoRotate !== false)) {
           // When not auto-rotating, this check needs to happen after the
           // previous check (see issue #698)
-          if (config.yaw > 180) {
+          if (config.yaw > 360) {
             config.yaw -= 360;
-          } else if (config.yaw < -180) {
+          } else if (config.yaw < -360) {
             config.yaw += 360;
           }
         }
@@ -1584,8 +1626,6 @@ export default (function(window, document, undefined) {
      * @param {DeviceOrientationEvent} event - Device orientation event.
      */
     function orientationListener(e) {
-      if (e.hasOwnProperty('requestPermission'))
-        e.requestPermission()
       var q = computeQuaternion(e.alpha, e.beta, e.gamma).toEulerAngles();
       if (typeof(orientation) == 'number' && orientation < 10) {
         // This kludge is necessary because iOS sometimes provides a few stale
@@ -1640,7 +1680,7 @@ export default (function(window, document, undefined) {
 
     /**
      * Triggered when render initialization finishes. Handles fading between
-     * scenes as well as showing the compass and hotspots and hiding the loading
+     * scenes as well as showing the compass and hot spots and hiding the loading
      * display.
      * @private
      */
@@ -1683,7 +1723,7 @@ export default (function(window, document, undefined) {
     /**
      * Creates hot spot element for the current scene.
      * @private
-     * @param {Object} hs - The configuration for the hotspot
+     * @param {Object} hs - The configuration for the hot spot
      */
     function createHotSpot(hs) {
       // Make sure hot spot pitch and yaw are numbers
@@ -1717,7 +1757,7 @@ export default (function(window, document, undefined) {
         if (config.basePath && !absoluteURL(imgp))
           imgp = config.basePath + imgp;
         a = document.createElement('a');
-        a.href = sanitizeURL(hs.URL ? hs.URL : imgp);
+        a.href = sanitizeURL(hs.URL ? hs.URL : imgp, true);
         a.target = '_blank';
         span.appendChild(a);
         var image = document.createElement('img');
@@ -1729,7 +1769,7 @@ export default (function(window, document, undefined) {
         span.style.maxWidth = 'initial';
       } else if (hs.URL) {
         a = document.createElement('a');
-        a.href = sanitizeURL(hs.URL);
+        a.href = sanitizeURL(hs.URL, true);
         if (hs.attributes) {
           for (var key in hs.attributes) {
             a.setAttribute(key, hs.attributes[key]);
@@ -1769,11 +1809,62 @@ export default (function(window, document, undefined) {
         div.addEventListener('click', function(e) {
           hs.clickHandlerFunc(e, hs.clickHandlerArgs);
         }, 'false');
+        if (document.documentElement.style.pointerAction === '' &&
+          document.documentElement.style.touchAction === '') {
+          div.addEventListener('pointerup', function(e) {
+            hs.clickHandlerFunc(e, hs.clickHandlerArgs);
+          }, false);
+        } else {
+          div.addEventListener('touchend', function(e) {
+            hs.clickHandlerFunc(e, hs.clickHandlerArgs);
+          }, false);
+        }
         div.className += ' pnlm-pointer';
         span.className += ' pnlm-pointer';
       }
+      if (hs.draggable) {
+        // Handle mouse by container event listeners
+        div.addEventListener('mousedown', function (e) {
+          if (hs.dragHandlerFunc)
+            hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+          draggingHotSpot = hs;
+        });
+
+        if (document.documentElement.style.pointerAction === '' &&
+          document.documentElement.style.touchAction === '') {
+          div.addEventListener('pointerdown', function (e) {
+            if (hs.dragHandlerFunc)
+              hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+            draggingHotSpot = hs;
+          });
+        }
+
+        // Handle touch events by hotspot event listener
+        div.addEventListener('touchmove', function(e) {
+          moveHotSpot(hs, e.targetTouches[0]);
+        });
+        div.addEventListener('touchend', function (e) {
+          if (hs.dragHandlerFunc)
+            hs.dragHandlerFunc(e, hs.dragHandlerArgs);
+          draggingHotSpot = null;
+        })
+      }
+
       hs.div = div;
     }
+
+    /**
+     * Moves a curently displayed hot spot.
+     * @private
+     * @param {Object} hs - Hot spot to move.
+     * @param {MouseEvent} event - Mouse event to get coordinates from.
+     */
+    function moveHotSpot(hs, event){
+      var coords = mouseEventToCoords(event);
+      hs.pitch = coords[0];
+      hs.yaw = coords[1];
+      renderHotSpot(hs);
+    };
 
     /**
      * Creates hot spot elements for the current scene.
@@ -1987,7 +2078,7 @@ export default (function(window, document, undefined) {
         infoDisplay.container.style.display = 'none';
 
       // Fill in load button label and loading box text
-      controls.load.innerHTML = '<p>' + config.strings.loadButtonLabel + '</p>';
+      controls.load.innerHTML = '<div><p>' + config.strings.loadButtonLabel + '</p></div>';
       infoDisplay.load.boxp.innerHTML = config.strings.loadingLabel;
 
       // Process other options
@@ -2003,7 +2094,7 @@ export default (function(window, document, undefined) {
               var authorText = escapeHTML(config[key]);
               if (config.authorURL) {
                 var authorLink = document.createElement('a');
-                authorLink.href = sanitizeURL(config['authorURL']);
+                authorLink.href = sanitizeURL(config['authorURL'], true);
                 authorLink.target = '_blank';
                 authorLink.innerHTML = escapeHTML(config[key]);
                 authorText = authorLink.outerHTML;
@@ -2014,7 +2105,7 @@ export default (function(window, document, undefined) {
 
             case 'fallback':
               var link = document.createElement('a');
-              link.href = sanitizeURL(config[key]);
+              link.href = sanitizeURL(config[key], true);
               link.target = '_blank';
               link.textContent = 'Click here to view this panorama in an alternative viewer.';
               var message = document.createElement('p');
@@ -2078,10 +2169,9 @@ export default (function(window, document, undefined) {
               break;
 
             case 'orientationOnByDefault':
-              if (config[key]) {
+              if (config[key])
                 startOrientation();
-                break;
-              }
+              break;
           }
         }
       }
@@ -2176,7 +2266,7 @@ export default (function(window, document, undefined) {
     }
 
     /**
-     * Clamps horzontal field of view to viewer's limits.
+     * Clamps horizontal field of view to viewer's limits.
      * @private
      * @param {number} hfov - Input horizontal field of view (in degrees)
      * @return {number} - Clamped horizontal field of view (in degrees)
@@ -2201,7 +2291,7 @@ export default (function(window, document, undefined) {
         newHfov = hfov;
       }
       // Optionally avoid showing background (empty space) on top or bottom by adapting newHfov
-      if (config.avoidShowingBackground && renderer) {
+      if (config.avoidShowingBackground && renderer && !isNaN(config.maxPitch - config.minPitch)) {
         var canvas = renderer.getCanvas();
         newHfov = Math.min(newHfov,
           Math.atan(Math.tan((config.maxPitch - config.minPitch) / 360 * Math.PI) /
@@ -2339,21 +2429,22 @@ export default (function(window, document, undefined) {
      * @private
      */
     function startOrientation() {
-      orientation = 1;
-      // Fix for IOS 13 where the user needs to perform an action i.e click. Then we need to ask permission
-      if (DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(response => {
-            if (response === 'granted') {
-              window.addEventListener('deviceorientation', orientationListener);
-            }
-          })
-          .catch(console.error)
-      }else {
+      if (!orientationSupport)
+        return;
+      if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(function(response) {
+          if (response == 'granted') {
+            orientation = 1;
+            window.addEventListener('deviceorientation', orientationListener);
+            controls.orientation.classList.add('pnlm-orientation-button-active');
+          }
+        });
+      } else {
+        orientation = 1;
         window.addEventListener('deviceorientation', orientationListener);
+        controls.orientation.classList.add('pnlm-orientation-button-active');
       }
-      // window.addEventListener('deviceorientation', orientationListener);
-      controls.orientation.classList.add('pnlm-orientation-button-active');
     }
 
     /**
@@ -2379,17 +2470,51 @@ export default (function(window, document, undefined) {
      * The URL cannot be of protocol 'javascript'.
      * @private
      * @param {string} url - URL to sanitize
+     * @param {boolean} href - True if URL is for link (blocks data URIs)
      * @returns {string} Sanitized URL
      */
-    function sanitizeURL(url) {
-      if (url.trim().toLowerCase().indexOf('javascript:') === 0) {
+    function sanitizeURL(url, href) {
+      try {
+        var decoded_url = decodeURIComponent(unescape(url)).replace(/[^\w:]/g, '').toLowerCase();
+      } catch (e) {
+        return 'about:blank';
+      }
+      if (decoded_url.indexOf('javascript:') === 0 ||
+        decoded_url.indexOf('vbscript:') === 0) {
+        console.log('Script URL removed.');
+        return 'about:blank';
+      }
+      if (href && decoded_url.indexOf('data:') === 0) {
+        console.log('Data URI removed from link.');
         return 'about:blank';
       }
       return url;
     }
 
     /**
-     * Removes possibility of XSS atacks with URLs for CSS.
+     * Unescapes HTML entities.
+     * Copied from Marked.js 0.7.0.
+     * @private
+     * @param {string} url - URL to sanitize
+     * @param {boolean} href - True if URL is for link (blocks data URIs)
+     * @returns {string} Sanitized URL
+     */
+    function unescape(html) {
+      // Explicitly match decimal, hex, and named HTML entities
+      return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
+        n = n.toLowerCase();
+        if (n === 'colon') return ':';
+        if (n.charAt(0) === '#') {
+          return n.charAt(1) === 'x'
+            ? String.fromCharCode(parseInt(n.substring(2), 16))
+            : String.fromCharCode(+n.substring(1));
+        }
+        return '';
+      });
+    }
+
+    /**
+     * Removes possibility of XSS attacks with URLs for CSS.
      * The URL will be sanitized with `sanitizeURL()` and single quotes
      * and double quotes escaped.
      * @private
@@ -2486,7 +2611,7 @@ export default (function(window, document, undefined) {
      * @returns {number} Yaw in degrees
      */
     this.getYaw = function() {
-      return config.yaw;
+      return (config.yaw + 540) % 360 - 180;
     };
 
     /**
@@ -2541,15 +2666,15 @@ export default (function(window, document, undefined) {
     };
 
     /**
-     * Set the minimum and maximum allowed yaws (in degrees [-180, 180]).
+     * Set the minimum and maximum allowed yaws (in degrees [-360, 360]).
      * @memberof Viewer
      * @instance
      * @param {number[]} bounds - [minimum yaw, maximum yaw]
      * @returns {Viewer} `this`
      */
     this.setYawBounds = function(bounds) {
-      config.minYaw = Math.max(-180, Math.min(bounds[0], 180));
-      config.maxYaw = Math.max(-180, Math.min(bounds[1], 180));
+      config.minYaw = Math.max(-360, Math.min(bounds[0], 360));
+      config.maxYaw = Math.max(-360, Math.min(bounds[1], 360));
       return this;
     };
 
@@ -2602,7 +2727,7 @@ export default (function(window, document, undefined) {
      * (in degrees).
      * @memberof Viewer
      * @instance
-     * @returns {number[]} [minimum hfov, maximum hfov]
+     * @returns {number[]} [minimum HFOV, maximum HFOV]
      */
     this.getHfovBounds = function() {
       return [config.minHfov, config.maxHfov];
@@ -2612,7 +2737,7 @@ export default (function(window, document, undefined) {
      * Set the minimum and maximum allowed horizontal fields of view (in degrees).
      * @memberof Viewer
      * @instance
-     * @param {number[]} bounds - [minimum hfov, maximum hfov]
+     * @param {number[]} bounds - [minimum HFOV, maximum HFOV]
      * @returns {Viewer} `this`
      */
     this.setHfovBounds = function(bounds) {
@@ -2627,7 +2752,7 @@ export default (function(window, document, undefined) {
      * @instance
      * @param {number} [pitch] - Target pitch
      * @param {number} [yaw] - Target yaw
-     * @param {number} [hfov] - Target hfov
+     * @param {number} [hfov] - Target HFOV
      * @param {boolean|number} [animated=1000] - Animation duration in milliseconds or false for no animation
      * @param {function} [callback] - Function to call when animation finishes
      * @param {object} [callbackArgs] - Arguments to pass to callback function
@@ -2730,14 +2855,16 @@ export default (function(window, document, undefined) {
      * @memberof Viewer
      * @instance
      * @param {number} [speed] - Auto rotation speed / direction. If not specified, previous value is used.
-     * @param {number} [pitch] - The pitch to rotate at. If not specified, inital pitch is used.
+     * @param {number} [pitch] - The pitch to rotate at. If not specified, initial pitch is used.
+     * @param {number} [hfov] - The HFOV to rotate at. If not specified, initial HFOV is used.
      * @returns {Viewer} `this`
      */
-    this.startAutoRotate = function(speed, pitch) {
+    this.startAutoRotate = function(speed, pitch, hfov) {
       speed = speed || autoRotateSpeed || 1;
       pitch = pitch === undefined ? origPitch : pitch;
+      hfov = hfov === undefined ? origHfov : hfov;
       config.autoRotate = speed;
-      _this.lookAt(pitch, undefined, origHfov, 3000);
+      _this.lookAt(pitch, undefined, hfov, 3000);
       animateInit();
       return this;
     };
@@ -3011,8 +3138,7 @@ export default (function(window, document, undefined) {
      * @instance
      */
     this.startOrientation = function() {
-      if (orientationSupport)
-        startOrientation();
+      startOrientation();
     };
 
     /**
@@ -3101,8 +3227,12 @@ export default (function(window, document, undefined) {
         container.removeEventListener('webkitfullscreenchange', onFullScreenChange, false);
         container.removeEventListener('msfullscreenchange', onFullScreenChange, false);
         container.removeEventListener('fullscreenchange', onFullScreenChange, false);
-        window.removeEventListener('resize', onDocumentResize, false);
-        window.removeEventListener('orientationchange', onDocumentResize, false);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        } else {
+          window.removeEventListener('resize', onDocumentResize, false);
+          window.removeEventListener('orientationchange', onDocumentResize, false);
+        }
         container.removeEventListener('keydown', onDocumentKeyPress, false);
         container.removeEventListener('keyup', onDocumentKeyUp, false);
         container.removeEventListener('blur', clearKeys, false);
@@ -3119,7 +3249,5 @@ export default (function(window, document, undefined) {
       return new Viewer(container, config);
     }
   };
-})(
-  typeof window === "undefined" ? null : window,
-  typeof document === "undefined" ? null : document
-);
+
+})(window, document);
