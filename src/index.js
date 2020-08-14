@@ -12,6 +12,8 @@ const loadScene = ReactPannellum.loadScene;
 
 const isLoaded = ReactPannellum.isLoaded;
 
+const getPixels = ReactPannellum.getPixels;
+
 const getPitch = ReactPannellum.getPitch;
 
 const setPitch = ReactPannellum.setPitch;
@@ -79,6 +81,7 @@ export {
   setPitch,
   getPitchBounds,
   setPitchBounds,
+  getPixels,
   getYaw,
   setYaw,
   getYawBounds,
