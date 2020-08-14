@@ -1,5 +1,7 @@
 # react-pannellum
 
+Customized the react-pannellum for use with multiple layers and added depth information for specific png files 
+
 > A library show panorama image for react
 
 > This library use source from [https://pannellum.org/](https://pannellum.org/)
