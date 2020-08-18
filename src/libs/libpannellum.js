@@ -736,20 +736,20 @@ export default (function(window, document, undefined) {
       if (gl && imageType == 'multires') {
         for ( var i = 0; i < program.currentNodes.length; i++ ) {
           if (!program.currentNodes[i].textureLoaded) {
-            var pxls = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
-            gl.readPixels(
-              0,
-              0,
-              gl.drawingBufferWidth,
-              gl.drawingBufferHeight,
-              gl.RGBA,
-              gl.UNSIGNED_BYTE,
-              pxls);
-            pixels = pxls.slice(); //copy array to pixels
-
             return true;
           }
         }
+
+        var pxls = new Uint8ClampedArray(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
+        gl.readPixels(
+          0,
+          0,
+          gl.drawingBufferWidth,
+          gl.drawingBufferHeight,
+          gl.RGBA,
+          gl.UNSIGNED_BYTE,
+          pxls);
+        pixels = pxls; //.slice(); //copy array to pixels
       }
       return false;
     };
@@ -768,7 +768,7 @@ export default (function(window, document, undefined) {
      * Retrieve the value of every pixel in RGBA.
      * @memberof Renderer
      * @instance
-     * @returns {Uint8Array} value of every pixel in RGBA.
+     * @returns {Uint8ClampedArray} value of every pixel in RGBA.
      */
     this.getPixels = function () {
       return pixels;

@@ -759,15 +759,14 @@ export default (function(window, document, undefined) {
         canvasHeight = canvas.clientHeight;
       var x = pos.x / canvasWidth * 2 - 1;
       var y = (1 - pos.y / canvasHeight * 2) * canvasHeight / canvasWidth;
-
-
-      var startIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
       //These pixels contain the distance of the whole image (in millimeter)
       var pixels = getPixels();
-      //                 Green = mm * 256             + Red = mm
-      var distanceInMm = (pixels[startIndex+1] * 256) + pixels[startIndex];
-      var distanceInMeter = distanceInMm / 1000;
-      //console.log("value of pixel (pixels[startIndex]) R ", pixels[startIndex], " G ", pixels[startIndex+1], " B ", pixels[startIndex+2], " A ", pixels[startIndex+3]);
+      var distanceInMeter = 0;
+      if(pixels) {
+        //                  Green = mm * 256                          + Red = mm
+        var startIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
+        distanceInMeter = ((pixels[startIndex + 1] * 256) + pixels[startIndex]) / 1000;
+      }
       var focal = 1 / Math.tan(config.hfov * Math.PI / 360);
       var s = Math.sin(config.pitch * Math.PI / 180);
       var c = Math.cos(config.pitch * Math.PI / 180);
@@ -779,14 +778,15 @@ export default (function(window, document, undefined) {
         yaw += 360;
       if (yaw > 180)
         yaw -= 360;
-      return [pitch, yaw, distanceInMeter];
+
+      return [pitch, yaw, distanceInMeter, pixels];
     }
 
     /**
      * Retrieve renderer's canvas.
      * @memberof Viewer
      * @instance
-     * @returns {Uint8Array} value of every pixel in RGBA.
+     * @returns {Uint8ClampedArray} value of every pixel in RGBA.
      */
     function getPixels() {
       return renderer.getPixels();
@@ -1040,7 +1040,7 @@ export default (function(window, document, undefined) {
         return;
       }
 
-      event.preventDefault();
+      //event.preventDefault();
 
       // Turn off auto-rotation if enabled
       stopAnimation();
@@ -2943,7 +2943,7 @@ export default (function(window, document, undefined) {
      * Retrieve renderer's canvas.
      * @memberof Viewer
      * @instance
-     * @returns {Uint8Array} value of every pixel in RGBA.
+     * @returns {Uint8ClampedArray} value of every pixel in RGBA.
      */
     this.getPixels = function() {
       return getPixels();
