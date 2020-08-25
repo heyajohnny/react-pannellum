@@ -750,9 +750,10 @@ export default (function(window, document, undefined) {
      * Calculate panorama pitch and yaw from location of mouse event.
      * @private
      * @param {MouseEvent} event - Document mouse down event.
-     * @returns {number[]} [pitch, yaw]
+     * @param {boolean} returnPixels - Do we want to return the pixels?
+     * @returns {number[]} [pitch, yaw, distanceInMeters, ?[pixels of the whole image]]
      */
-    function mouseEventToCoords(event) {
+    function mouseEventToCoords(event, returnPixels = false) {
       var pos = mousePosition(event);
       var canvas = renderer.getCanvas();
       var canvasWidth = canvas.clientWidth,
@@ -764,8 +765,8 @@ export default (function(window, document, undefined) {
       var distanceInMeter = 0;
       if(pixels) {
         //                  Green = mm * 256                          + Red = mm
-        var startIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
-        distanceInMeter = ((pixels[startIndex + 1] * 256) + pixels[startIndex]) / 1000;
+        var mousePointerIndex = ((canvasHeight - pos.y) * canvasWidth * 4) + (pos.x * 4);
+        distanceInMeter = ((pixels[mousePointerIndex + 1] * 256) + pixels[mousePointerIndex]) / 1000;
       }
       var focal = 1 / Math.tan(config.hfov * Math.PI / 360);
       var s = Math.sin(config.pitch * Math.PI / 180);
@@ -779,7 +780,7 @@ export default (function(window, document, undefined) {
       if (yaw > 180)
         yaw -= 360;
 
-      return [pitch, yaw, distanceInMeter, pixels];
+      return returnPixels ? [pitch, yaw, distanceInMeter, pixels] : [pitch, yaw, distanceInMeter];
     }
 
     /**
@@ -2933,10 +2934,11 @@ export default (function(window, document, undefined) {
      * @memberof Viewer
      * @instance
      * @param {MouseEvent} event - Document mouse down event.
-     * @returns {number[]} [pitch, yaw]
+     * @param {boolean} returnPixels - Do we want to return the pixels?
+     * @returns {number[]} [pitch, yaw, distanceInMeters, ?[pixels of the whole image]]
      */
-    this.mouseEventToCoords = function(event) {
-      return mouseEventToCoords(event);
+    this.mouseEventToCoords = function(event, returnPixels) {
+      return mouseEventToCoords(event, returnPixels);
     };
 
     /**

@@ -235,8 +235,8 @@ class ReactPannellum extends React.Component {
     }
   }
 
-  static mouseEventToCoords(event) {
-    return myPannellum && myPannellum.mouseEventToCoords(event);
+  static mouseEventToCoords(event, returnPixels) {
+    return myPannellum && myPannellum.mouseEventToCoords(event, returnPixels);
   }
 
   static addScene(sceneId, config, callback) {
