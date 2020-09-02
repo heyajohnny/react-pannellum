@@ -452,8 +452,8 @@ export default (function(window, document, undefined) {
         window.addEventListener('mousemove', onDocumentMouseMove, false);
         window.addEventListener('mouseup', onDocumentMouseUp, false);
         if (config.mouseZoom) {
-          window.addEventListener('mousewheel', onDocumentMouseWheel, false);
-          window.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);
+          window.addEventListener('mousewheel', onDocumentMouseWheel, {passive: false});
+          window.addEventListener('DOMMouseScroll', onDocumentMouseWheel, {passive: false});
         }
         if (config.doubleClickZoom) {
           window.addEventListener('dblclick', onDocumentDoubleClick, false);
@@ -1041,7 +1041,7 @@ export default (function(window, document, undefined) {
         return;
       }
 
-      //event.preventDefault();
+      event.preventDefault();
 
       // Turn off auto-rotation if enabled
       stopAnimation();
@@ -1050,15 +1050,15 @@ export default (function(window, document, undefined) {
       if (event.wheelDeltaY) {
         // WebKit
         setHfov(config.hfov - event.wheelDeltaY * 0.05);
-        speed.hfov = event.wheelDelta < 0 ? 1 : -1;
+        //speed.hfov = event.wheelDelta < 0 ? 1 : -1;
       } else if (event.wheelDelta) {
         // Opera / Explorer 9
         setHfov(config.hfov - event.wheelDelta * 0.05);
-        speed.hfov = event.wheelDelta < 0 ? 1 : -1;
+        //speed.hfov = event.wheelDelta < 0 ? 1 : -1;
       } else if (event.detail) {
         // Firefox
         setHfov(config.hfov + event.detail * 1.5);
-        speed.hfov = event.detail > 0 ? 1 : -1;
+        //speed.hfov = event.detail > 0 ? 1 : -1;
       }
       animateInit();
     }
