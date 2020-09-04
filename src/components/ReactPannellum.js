@@ -265,6 +265,10 @@ class ReactPannellum extends React.Component {
     return myPannellum && myPannellum.getAllScenes();
   }
 
+  static destroy() {
+    return myPannellum && myPannellum.destroy();
+  }
+
   static removeScene(sceneId, callback) {
     if (sceneId && sceneId !== "") {
       constants

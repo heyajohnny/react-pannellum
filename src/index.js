@@ -68,10 +68,13 @@ const addHotSpot = ReactPannellum.addHotSpot;
 
 const removeHotSpot = ReactPannellum.removeHotSpot;
 
+const destroy = ReactPannellum.destroy;
+
 export default ReactPannellum;
 
 export {
   addScene,
+  destroy,
   getCurrentScene,
   getAllScenes,
   removeScene,
