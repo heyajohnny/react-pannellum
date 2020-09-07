@@ -780,7 +780,7 @@ export default (function(window, document, undefined) {
       if (yaw > 180)
         yaw -= 360;
 
-      return returnPixels ? [pitch, yaw, distanceInMeter, config, pixels] : [pitch, yaw, distanceInMeter, config];
+      return returnPixels && pixels !== null ? [pitch, yaw, distanceInMeter, config, pixels] : [pitch, yaw, distanceInMeter, config];
     }
 
     /**

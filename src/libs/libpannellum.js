@@ -749,7 +749,16 @@ export default (function(window, document, undefined) {
           gl.RGBA,
           gl.UNSIGNED_BYTE,
           pxls);
-        pixels = pxls; //.slice(); //copy array to pixels
+        let hasBluePixels = false;
+        for(let i = 0; i < pxls.length; i ++){
+          if(i % 4 === 0){
+            if(pxls[i+2] !== 0) {
+              hasBluePixels = true;
+              break;
+            }
+          }
+        }
+        pixels = hasBluePixels ? null : pxls; //.slice(); //copy array to pixels
       }
       return false;
     };
