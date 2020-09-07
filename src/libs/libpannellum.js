@@ -1223,10 +1223,14 @@ export default (function(window, document, undefined) {
      */
     function checkZoom(hfov) {
       // Find optimal level
-      var newLevel = 1;
+      var newLevel = 2;
+      //Change this parameter to adjust the loading of the next zoom level.
+      //Make the value higher to load the next zoom level with a deeper zoom
+      //Make the value lower to load the next zoom level earlier with a shallower zoom
+      var nextZoomMultiplier = 2.2;
       while ( newLevel < image.maxLevel &&
       gl.drawingBufferWidth > image.tileResolution *
-      Math.pow(2, newLevel - 1) * Math.tan(hfov / 2) * 0.707 ) {
+      Math.pow(2, newLevel - 1) * Math.tan(hfov / 2) * nextZoomMultiplier ) {
         newLevel++;
       }
 
