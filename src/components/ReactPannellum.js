@@ -251,6 +251,10 @@ class ReactPannellum extends React.Component {
     }
   }
 
+  static getScene(sceneId) {
+    return myPannellum && myPannellum.getScene(sceneId);
+  }
+
   static getCurrentScene() {
     return myPannellum && myPannellum.getScene();
   }
@@ -358,7 +362,6 @@ class ReactPannellum extends React.Component {
   static isOrientationActive() {
     return myPannellum && myPannellum.isOrientationActive();
   }
-
 
   render() {
     const { style, className, id } = this.props;

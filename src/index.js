@@ -2,6 +2,8 @@ import ReactPannellum from "./components/ReactPannellum";
 
 const addScene = ReactPannellum.addScene;
 
+const getScene = ReactPannellum.getScene;
+
 const getCurrentScene = ReactPannellum.getCurrentScene;
 
 const getAllScenes = ReactPannellum.getAllScenes;
@@ -86,6 +88,7 @@ export default ReactPannellum;
 
 export {
   addScene,
+  getScene,
   getCurrentScene,
   getAllScenes,
   removeScene,
