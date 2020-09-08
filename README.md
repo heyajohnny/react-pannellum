@@ -1,6 +1,6 @@
 # react-pannellum
 
-Customized the react-pannellum for use with multiple layers and added depth information for specific png files 
+Customized the react-pannellum for use with multiple layers and added depth information for specific png files
 
 > A library show panorama image for react
 
@@ -249,7 +249,7 @@ When `true`, the mouse pointer’s pitch and yaw are logged to the console when 
 
 ## <a id="apiEvents" ></a> API Events
 
-- ### Do not call API event in `componentDidMount` or API event will return undefined.
+### - Do not call API event in `componentDidMount` or API event will return undefined.
 
 > ### isLoaded
 >
@@ -484,6 +484,38 @@ Parameters:
 - `sceneId` string The ID of the current scene.
 
 Returns `true` if deletion is successful, else `false`.
+
+> ### stopMovement
+>
+> Stops all movement.
+
+> ### resize
+>
+> This method should be called if the viewer's container is resized.
+
+> ### isOrientationSupported
+>
+> Check if device orientation control is supported.
+
+Returns `true` if supported, else `false`.
+
+> ### stopOrientation
+>
+> Stop using device orientation.
+
+> ### startOrientation
+>
+> Start using device orientation (does nothing if not supported).
+
+> ### isOrientationActive
+>
+> Check if device orientation control is currently activated.
+
+Returns `true` if active, else `false`.
+
+> ### destroy
+>
+> Destructor.
 
 ## <a id="apiEventListeners" ></a> Api Event Listeners
 
