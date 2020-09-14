@@ -6,7 +6,7 @@ import "../css/pannellum.css";
 
 let myPannellum = null;
 
-class ReactPannellum extends React.Component {
+class ReactPannellumLayer2 extends React.Component {
   static propTypes = {
     id: PropTypes.string.isRequired,
     sceneId: PropTypes.string.isRequired,
@@ -369,4 +369,4 @@ class ReactPannellum extends React.Component {
   }
 }
 
-export default ReactPannellum;
+export default ReactPannellumLayer2;
