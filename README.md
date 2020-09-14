@@ -1,12 +1,11 @@
 # react-pannellum
 
-Customized the react-pannellum for use with multiple layers and added depth information for specific png files
+Customized the react-pannellum for use with 2 layers. Layer 1 = color/grayscale image. Layer 2 = depthmap (for specific png depth files)
 
 > A library show panorama image for react
 
 > This library use source from [https://pannellum.org/](https://pannellum.org/)
 
-[![NPM](https://img.shields.io/npm/v/react-pannellum.svg)](https://www.npmjs.com/package/react-pannellum) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
 

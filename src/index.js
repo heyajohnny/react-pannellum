@@ -1,132 +1,220 @@
-import ReactPannellum from "./components/ReactPannellum";
+import ReactPannellumLayer1 from "./components/ReactPannellumLayer1";
+import ReactPannellumLayer2 from "./components/ReactPannellumLayer2";
 
-const addScene = ReactPannellum.addScene;
 
-const getScene = ReactPannellum.getScene;
+const addScene1 = ReactPannellumLayer1.addScene;
+const addScene2 = ReactPannellumLayer2.addScene;
 
-const getCurrentScene = ReactPannellum.getCurrentScene;
+const getScene1 = ReactPannellumLayer1.getScene;
+const getScene2 = ReactPannellumLayer2.getScene;
 
-const getAllScenes = ReactPannellum.getAllScenes;
+const getCurrentScene1 = ReactPannellumLayer1.getCurrentScene;
+const getCurrentScene2 = ReactPannellumLayer2.getCurrentScene;
 
-const removeScene = ReactPannellum.removeScene;
+const getAllScenes1 = ReactPannellumLayer1.getAllScenes;
+const getAllScenes2 = ReactPannellumLayer2.getAllScenes;
 
-const loadScene = ReactPannellum.loadScene;
+const removeScene1 = ReactPannellumLayer1.removeScene;
+const removeScene2 = ReactPannellumLayer2.removeScene;
 
-const isLoaded = ReactPannellum.isLoaded;
+const loadScene1 = ReactPannellumLayer1.loadScene;
+const loadScene2 = ReactPannellumLayer2.loadScene;
 
-const getPixels = ReactPannellum.getPixels;
+const isLoaded1 = ReactPannellumLayer1.isLoaded;
+const isLoaded2 = ReactPannellumLayer2.isLoaded;
 
-const getPitch = ReactPannellum.getPitch;
+const getPixels1 = ReactPannellumLayer1.getPixels;
+const getPixels2 = ReactPannellumLayer2.getPixels;
 
-const setPitch = ReactPannellum.setPitch;
+const getPitch1 = ReactPannellumLayer1.getPitch;
+const getPitch2 = ReactPannellumLayer2.getPitch;
 
-const getPitchBounds = ReactPannellum.getPitchBounds;
+const setPitch1 = ReactPannellumLayer1.setPitch;
+const setPitch2 = ReactPannellumLayer2.setPitch;
 
-const setPitchBounds = ReactPannellum.setPitchBounds;
+const getPitchBounds1 = ReactPannellumLayer1.getPitchBounds;
+const getPitchBounds2 = ReactPannellumLayer2.getPitchBounds;
 
-const getYaw = ReactPannellum.getYaw;
+const setPitchBounds1 = ReactPannellumLayer1.setPitchBounds;
+const setPitchBounds2 = ReactPannellumLayer2.setPitchBounds;
 
-const setYaw = ReactPannellum.setYaw;
+const getYaw1 = ReactPannellumLayer1.getYaw;
+const getYaw2 = ReactPannellumLayer2.getYaw;
 
-const getYawBounds = ReactPannellum.getYawBounds;
+const setYaw1 = ReactPannellumLayer1.setYaw;
+const setYaw2 = ReactPannellumLayer2.setYaw;
 
-const setYawBounds = ReactPannellum.setYawBounds;
+const getYawBounds1 = ReactPannellumLayer1.getYawBounds;
+const getYawBounds2 = ReactPannellumLayer2.getYawBounds;
 
-const getHfov = ReactPannellum.getHfov;
+const setYawBounds1 = ReactPannellumLayer1.setYawBounds;
+const setYawBounds2 = ReactPannellumLayer2.setYawBounds;
 
-const setHfov = ReactPannellum.setHfov;
+const getHfov1 = ReactPannellumLayer1.getHfov;
+const getHfov2 = ReactPannellumLayer2.getHfov;
 
-const getHfovBounds = ReactPannellum.getHfovBounds;
+const setHfov1 = ReactPannellumLayer1.setHfov;
+const setHfov2 = ReactPannellumLayer2.setHfov;
 
-const setHfovBounds = ReactPannellum.setHfovBounds;
+const getHfovBounds1 = ReactPannellumLayer1.getHfovBounds;
+const getHfovBounds2 = ReactPannellumLayer2.getHfovBounds;
 
-const lookAt = ReactPannellum.lookAt;
+const setHfovBounds1 = ReactPannellumLayer1.setHfovBounds;
+const setHfovBounds2 = ReactPannellumLayer2.setHfovBounds;
 
-const getNorthOffset = ReactPannellum.getNorthOffset;
+const lookAt1 = ReactPannellumLayer1.lookAt;
+const lookAt2 = ReactPannellumLayer2.lookAt;
 
-const setNorthOffset = ReactPannellum.setNorthOffset;
+const getNorthOffset1 = ReactPannellumLayer1.getNorthOffset;
+const getNorthOffset2 = ReactPannellumLayer2.getNorthOffset;
 
-const getHorizonRoll = ReactPannellum.getHorizonRoll;
+const setNorthOffset1 = ReactPannellumLayer1.setNorthOffset;
+const setNorthOffset2 = ReactPannellumLayer2.setNorthOffset;
 
-const setHorizonRoll = ReactPannellum.setHorizonRoll;
+const getHorizonRoll1 = ReactPannellumLayer1.getHorizonRoll;
+const getHorizonRoll2 = ReactPannellumLayer2.getHorizonRoll;
 
-const getHorizonPitch = ReactPannellum.getHorizonPitch;
+const setHorizonRoll1 = ReactPannellumLayer1.setHorizonRoll;
+const setHorizonRoll2 = ReactPannellumLayer2.setHorizonRoll;
 
-const setHorizonPitch = ReactPannellum.setHorizonPitch;
+const getHorizonPitch1 = ReactPannellumLayer1.getHorizonPitch;
+const getHorizonPitch2 = ReactPannellumLayer2.getHorizonPitch;
 
-const startAutoRotate = ReactPannellum.startAutoRotate;
+const setHorizonPitch1 = ReactPannellumLayer1.setHorizonPitch;
+const setHorizonPitch2 = ReactPannellumLayer2.setHorizonPitch;
 
-const stopAutoRotate = ReactPannellum.stopAutoRotate;
+const startAutoRotate1 = ReactPannellumLayer1.startAutoRotate;
+const startAutoRotate2 = ReactPannellumLayer2.startAutoRotate;
 
-const mouseEventToCoords = ReactPannellum.mouseEventToCoords;
+const stopAutoRotate1 = ReactPannellumLayer1.stopAutoRotate;
+const stopAutoRotate2 = ReactPannellumLayer2.stopAutoRotate;
 
-const toggleFullscreen = ReactPannellum.toggleFullscreen;
+const mouseEventToCoords1 = ReactPannellumLayer1.mouseEventToCoords;
+const mouseEventToCoords2 = ReactPannellumLayer2.mouseEventToCoords;
 
-const getConfig = ReactPannellum.getConfig;
+const toggleFullscreen1 = ReactPannellumLayer1.toggleFullscreen;
+const toggleFullscreen2 = ReactPannellumLayer2.toggleFullscreen;
 
-const getContainer = ReactPannellum.getContainer;
+const getConfig1 = ReactPannellumLayer1.getConfig;
+const getConfig2 = ReactPannellumLayer2.getConfig;
 
-const addHotSpot = ReactPannellum.addHotSpot;
+const getContainer1 = ReactPannellumLayer1.getContainer;
+const getContainer2 = ReactPannellumLayer2.getContainer;
 
-const removeHotSpot = ReactPannellum.removeHotSpot;
+const addHotSpot1 = ReactPannellumLayer1.addHotSpot;
+const addHotSpot2 = ReactPannellumLayer2.addHotSpot;
 
-const destroy = ReactPannellum.destroy;
+const removeHotSpot1 = ReactPannellumLayer1.removeHotSpot;
+const removeHotSpot2 = ReactPannellumLayer2.removeHotSpot;
 
-const stopMovement = ReactPannellum.stopMovement;
+const destroy1 = ReactPannellumLayer1.destroy;
+const destroy2 = ReactPannellumLayer2.destroy;
 
-const resize = ReactPannellum.resize;
+const stopMovement1 = ReactPannellumLayer1.stopMovement;
+const stopMovement2 = ReactPannellumLayer2.stopMovement;
 
-const isOrientationSupported = ReactPannellum.isOrientationSupported;
+const resize1 = ReactPannellumLayer1.resize;
+const resize2 = ReactPannellumLayer2.resize;
 
-const stopOrientation = ReactPannellum.stopOrientation;
+const isOrientationSupported1 = ReactPannellumLayer1.isOrientationSupported;
+const isOrientationSupported2 = ReactPannellumLayer2.isOrientationSupported;
 
-const startOrientation = ReactPannellum.startOrientation;
+const stopOrientation1 = ReactPannellumLayer1.stopOrientation;
+const stopOrientation2 = ReactPannellumLayer2.stopOrientation;
 
-const isOrientationActive = ReactPannellum.isOrientationActive;
+const startOrientation1 = ReactPannellumLayer1.startOrientation;
+const startOrientation2 = ReactPannellumLayer2.startOrientation;
 
-export default ReactPannellum;
+const isOrientationActive1 = ReactPannellumLayer1.isOrientationActive;
+const isOrientationActive2 = ReactPannellumLayer2.isOrientationActive;
+
+//export default ReactPannellumLayer1;
 
 export {
-  addScene,
-  getScene,
-  getCurrentScene,
-  getAllScenes,
-  removeScene,
-  loadScene,
-  isLoaded,
-  getPitch,
-  setPitch,
-  getPitchBounds,
-  setPitchBounds,
-  getPixels,
-  getYaw,
-  setYaw,
-  getYawBounds,
-  setYawBounds,
-  getHfov,
-  setHfov,
-  getHfovBounds,
-  setHfovBounds,
-  lookAt,
-  getNorthOffset,
-  setNorthOffset,
-  getHorizonRoll,
-  setHorizonRoll,
-  getHorizonPitch,
-  setHorizonPitch,
-  startAutoRotate,
-  stopAutoRotate,
-  mouseEventToCoords,
-  toggleFullscreen,
-  getConfig,
-  getContainer,
-  addHotSpot,
-  removeHotSpot,
-  destroy,
-  stopMovement,
-  resize,
-  isOrientationSupported,
-  stopOrientation,
-  startOrientation,
-  isOrientationActive,
+  addScene1,
+  addScene2,
+  getScene1,
+  getScene2,
+  getCurrentScene1,
+  getCurrentScene2,
+  getAllScenes1,
+  getAllScenes2,
+  removeScene1,
+  removeScene2,
+  loadScene1,
+  loadScene2,
+  isLoaded1,
+  isLoaded2,
+  getPitch1,
+  getPitch2,
+  setPitch1,
+  setPitch2,
+  getPitchBounds1,
+  getPitchBounds2,
+  setPitchBounds1,
+  setPitchBounds2,
+  getPixels1,
+  getPixels2,
+  getYaw1,
+  getYaw2,
+  setYaw1,
+  setYaw2,
+  getYawBounds1,
+  getYawBounds2,
+  setYawBounds1,
+  setYawBounds2,
+  getHfov1,
+  getHfov2,
+  setHfov1,
+  setHfov2,
+  getHfovBounds1,
+  getHfovBounds2,
+  setHfovBounds1,
+  setHfovBounds2,
+  lookAt1,
+  lookAt2,
+  getNorthOffset1,
+  getNorthOffset2,
+  setNorthOffset1,
+  setNorthOffset2,
+  getHorizonRoll1,
+  getHorizonRoll2,
+  setHorizonRoll1,
+  setHorizonRoll2,
+  getHorizonPitch1,
+  getHorizonPitch2,
+  setHorizonPitch1,
+  setHorizonPitch2,
+  startAutoRotate1,
+  startAutoRotate2,
+  stopAutoRotate1,
+  stopAutoRotate2,
+  mouseEventToCoords1,
+  mouseEventToCoords2,
+  toggleFullscreen1,
+  toggleFullscreen2,
+  getConfig1,
+  getConfig2,
+  getContainer1,
+  getContainer2,
+  addHotSpot1,
+  addHotSpot2,
+  removeHotSpot1,
+  removeHotSpot2,
+  destroy1,
+  destroy2,
+  stopMovement1,
+  stopMovement2,
+  resize1,
+  resize2,
+  isOrientationSupported1,
+  isOrientationSupported2,
+  stopOrientation1,
+  stopOrientation2,
+  startOrientation1,
+  startOrientation2,
+  isOrientationActive1,
+  isOrientationActive2,
+  ReactPannellumLayer1,
+  ReactPannellumLayer2
 };
