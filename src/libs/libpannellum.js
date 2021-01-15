@@ -1688,15 +1688,36 @@ export default (function (window, document, undefined) {
         textureImageCache[i] = new TextureImageLoader();
 
       return function (node, src, callback, _crossOrigin) {
-        crossOrigin = _crossOrigin;
-        var texture = gl.createTexture();
-        if (cacheTop)
-          textureImageCache[--cacheTop].loadTexture(src, texture, callback);
-        else
-          pendingTextureRequests.push(
-            new PendingTextureRequest(node, src, texture, callback)
-          );
-        return texture;
+        var options;
+        if(window.localStorage.getItem('token') !== null) {
+          options = {
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer ' + JSON.parse(window.localStorage.getItem('token')).access_token
+            }
+          };
+        }
+
+        fetch(src, options)
+          .then(res => res.blob())
+          .then(blob => {
+            var reader = new FileReader();
+            var newSrc = null;
+            var texture = null;
+            reader.readAsDataURL(blob);
+            reader.onloadend = function () {
+              newSrc = reader.result;
+              crossOrigin = _crossOrigin;
+              texture = gl.createTexture();
+              if (cacheTop)
+                textureImageCache[--cacheTop].loadTexture(newSrc, texture, callback);
+              else
+                pendingTextureRequests.push(
+                  new PendingTextureRequest(node, newSrc, texture, callback)
+                );
+              return texture;
+            }
+          });
       };
     })();
 

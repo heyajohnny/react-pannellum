@@ -474,6 +474,9 @@ export default (function (window, document, undefined) {
           }
           xhr.responseType = "blob";
           xhr.setRequestHeader("Accept", "image/*,*/*;q=0.9");
+          if(window.localStorage.getItem('token') !== null) {
+            xhr.setRequestHeader("Authorization", "Bearer " + JSON.parse(window.localStorage.getItem('token')).access_token);
+          }
           xhr.withCredentials = config.crossOrigin === "use-credentials";
           xhr.send();
         }
