@@ -744,9 +744,9 @@ export default (function (window, document, undefined) {
      */
     function onDocumentMouseDown(event) {
       // Override default action
-      event.preventDefault();
+      //event.preventDefault();
       // But not all of it
-      container.focus();
+      //container.focus();
 
       // Only do something if the panorama is loaded
       if (!loaded || !config.draggable) {
