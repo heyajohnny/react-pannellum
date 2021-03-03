@@ -198,6 +198,10 @@ Specifies the pitch portion of the hot spot’s location, in degrees.
 
 Specifies the yaw portion of the hot spot’s location, in degrees.
 
+#### size (number)
+
+Specifies the size (width and height) portion of the hot spot , in pixels.
+
 #### type (string)
 
 Specifies the type of the hot spot. Can be scene for scene links or info for information hot spots. A tour configuration file is required for scene hot spots.

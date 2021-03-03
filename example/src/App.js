@@ -7,6 +7,7 @@ export default class App extends React.Component {
       {
         pitch: 14.1,
         yaw: 1.5,
+        size: 48,
         type: "info",
         text: "Baltimore Museum of Art",
         URL: "https://artbma.org/"

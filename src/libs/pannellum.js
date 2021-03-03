@@ -2029,6 +2029,15 @@ export default (function (window, document, undefined) {
           div.className += " pnlm-pointer";
           span.className += " pnlm-pointer";
         }
+        div.innerText = "i";
+        div.style.height = hs.size + "px";
+        div.style.width = hs.size + "px";
+        div.style.textAlign = "center";
+        div.style.lineHeight = hs.size + "px";
+        div.style.fontWeight = 700;
+        div.style.fontSize = "small";
+        div.style.left = "-" + hs.size/2 + "px";
+        div.style.top = "-" + hs.size/2 + "px";
         renderContainer.appendChild(div);
       }
 
