@@ -3527,6 +3527,19 @@ export default (function (window, document, undefined) {
         window.removeEventListener("keyup", onDocumentKeyUp, false);
         window.removeEventListener("blur", clearKeys, false);
         window.removeEventListener("mouseleave", onDocumentMouseUp, false);
+
+        window.removeEventListener("mousedown", onDocumentMouseDown,false);
+        window.removeEventListener("mousewheel", onDocumentMouseWheel,false);
+        window.removeEventListener("DOMMouseScroll", onDocumentMouseWheel,false);
+        window.removeEventListener("dblclick", onDocumentDoubleClick,false);
+        window.removeEventListener("pointerdown", onDocumentPointerDown,false);
+        window.removeEventListener("pointermove", onDocumentPointerMove,false);
+        window.removeEventListener("pointerup", onDocumentPointerUp,false);
+        window.removeEventListener("pointerleave", onDocumentPointerUp,false);
+        window.removeEventListener("touchstart", onDocumentTouchStart,false);
+        window.removeEventListener("touchmove", onDocumentTouchMove,false);
+        window.removeEventListener("touchend", onDocumentTouchEnd,false);
+        window.removeEventListener("deviceorientation", orientationListener,false);
       }
       container.innerHTML = "";
       container.classList.remove("pnlm-container");
