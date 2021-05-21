@@ -298,6 +298,11 @@ export default (function (window, document, undefined) {
     compass.className = "pnlm-compass pnlm-controls pnlm-control";
     uiContainer.appendChild(compass);
 
+    // Local Compass
+    var localCompass = document.createElement("div");
+    localCompass.className = "pnlm-local-compass pnlm-controls pnlm-control";
+    uiContainer.appendChild(localCompass);
+
     // Load and process configuration
     if (initialConfig.firstScene) {
       // Activate first scene if specified in URL
@@ -1735,6 +1740,10 @@ export default (function (window, document, undefined) {
             "rotate(" + (-config.yaw - config.northOffset) + "deg)";
           compass.style.webkitTransform =
             "rotate(" + (-config.yaw - config.northOffset) + "deg)";
+          localCompass.style.transform =
+            "rotate(" + (-config.yaw + 90) + "deg)";
+          localCompass.style.webkitTransform =
+            "rotate(" + (-config.yaw + 90) + "deg)";
         }
       }
     }
@@ -1932,8 +1941,10 @@ export default (function (window, document, undefined) {
       // Show compass if applicable
       if (config.compass) {
         compass.style.display = "inline";
+        localCompass.style.display = "inline";
       } else {
         compass.style.display = "none";
+        localCompass.style.display = "none";
       }
 
       // Show hotspots
