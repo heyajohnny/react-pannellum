@@ -1741,9 +1741,9 @@ export default (function (window, document, undefined) {
           compass.style.webkitTransform =
             "rotate(" + (-config.yaw - config.northOffset) + "deg)";
           localCompass.style.transform =
-            "rotate(" + (-config.yaw + 90) + "deg)";
+            "rotate(" + (-config.yaw - 90) + "deg)";
           localCompass.style.webkitTransform =
-            "rotate(" + (-config.yaw + 90) + "deg)";
+            "rotate(" + (-config.yaw - 90) + "deg)";
         }
       }
     }
